@@ -2,8 +2,9 @@ import { StyledButton } from "@/common/components/button";
 import { useAppDispatch } from "@/common/hooks/redux-hooks";
 import { formatDate } from "@/common/utils/utils";
 import type { Subscription } from "@/data/mock-data";
-import styled, { css } from "styled-components";
 import { cancelSubscription } from "@/features/subscriptions/subscriptionsSlice";
+import { formatPrice } from "@/features/subscriptions/utils/utils";
+import styled, { css } from "styled-components";
 
 const Card = styled.li`
   border: 1px solid #ccc;
@@ -17,7 +18,7 @@ const Card = styled.li`
 const InformationContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 `;
 
 const Title = styled.h2`
@@ -26,7 +27,7 @@ const Title = styled.h2`
 `;
 
 const Status = styled.p<{ status: "active" | "cancelled" | "paused" }>`
-  padding: 0.2rem 0.5rem;
+  padding: 0.1rem 0.5rem;
   border-radius: 4px;
   width: fit-content;
 
@@ -70,7 +71,8 @@ function SubscriptionCard({ subscription }: Props) {
         <Title>{subscription.offerTitle}</Title>
         <Status status={subscription.status}>{subscription.status}</Status>
         <Price>
-          <span>{subscription.price}</span> {subscription.currency} / month
+          <span>{formatPrice(subscription.price, subscription.currency)}</span>{" "}
+          / month
         </Price>
         <p>Renews on: {formatDate(new Date(subscription.nextPaymentDate))}</p>
       </InformationContainer>

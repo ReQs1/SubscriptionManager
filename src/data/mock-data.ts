@@ -13,7 +13,7 @@ export const mockSubscriptions: Subscription[] = [
     offerTitle: "Premium Monthly",
     status: "active",
     price: 12.99,
-    currency: "USD",
+    currency: "EUR",
     nextPaymentDate: "2025-11-15T10:00:00Z",
   },
   {
@@ -37,7 +37,7 @@ export const mockSubscriptions: Subscription[] = [
     offerTitle: "Cloud Storage 100GB",
     status: "cancelled",
     price: 4.99,
-    currency: "USD",
+    currency: "PLN",
     nextPaymentDate: "2025-11-30T10:00:00Z",
   },
   {
@@ -93,7 +93,7 @@ export const mockSubscriptions: Subscription[] = [
     offerTitle: "Password Manager Family",
     status: "active",
     price: 4.99,
-    currency: "USD",
+    currency: "EUR",
     nextPaymentDate: "2025-12-15T10:00:00Z",
   },
   {
@@ -109,7 +109,7 @@ export const mockSubscriptions: Subscription[] = [
     offerTitle: "Photo Editing Pro",
     status: "active",
     price: 9.99,
-    currency: "USD",
+    currency: "EUR",
     nextPaymentDate: "2026-02-01T10:00:00Z",
   },
 ];
