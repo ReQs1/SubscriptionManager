@@ -1,12 +1,18 @@
-import { useState } from "react";
+import styled from "styled-components";
+import SubscriptionsList from "@/features/subscriptions/components/subscriptions-list";
+
+const Container = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  min-height: 100dvh;
+`;
 
 function App() {
-  const [count, setCount] = useState(0);
   return (
-    <div>
-      <p>{count}</p>
-      <button onClick={() => setCount((prev) => prev + 1)}>+</button>
-    </div>
+    <Container>
+      <SubscriptionsList />
+    </Container>
   );
 }
 
