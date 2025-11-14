@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "@/common/hooks/redux-hooks";
 import SubscriptionCard from "@/features/subscriptions/components/subscription-card";
 import SubscriptionsListHeader from "@/features/subscriptions/components/subscriptions-list-header";
 import { fetchSubscriptions } from "@/features/subscriptions/subscriptionsSlice";
+import Pagination from "@/features/subscriptions/components/pagination";
 
 const Container = styled.div`
   width: 100%;
@@ -29,10 +30,15 @@ const EmptyMessage = styled.p`
 `;
 
 function SubscriptionsList() {
-  const { error, state, subscriptions } = useAppSelector(
-    (state) => state.subscriptions
-  );
+  const { error, state, subscriptions, currentPage, itemsPerPage } =
+    useAppSelector((state) => state.subscriptions);
   const dispatch = useAppDispatch();
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedSubscriptions = subscriptions.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   useEffect(() => {
     if (state === "idle") {
@@ -50,11 +56,14 @@ function SubscriptionsList() {
           <EmptyMessage>No subscriptions yet</EmptyMessage>
         )}
         {state === "success" &&
-          subscriptions.length > 0 &&
-          subscriptions.map((sub) => (
+          paginatedSubscriptions.length > 0 &&
+          paginatedSubscriptions.map((sub) => (
             <SubscriptionCard key={sub.id} subscription={sub} />
           ))}
       </List>
+      {state === "success" && paginatedSubscriptions.length > 0 && (
+        <Pagination />
+      )}
     </Container>
   );
 }

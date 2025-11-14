@@ -5,17 +5,22 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { fetchMockSubscriptions } from "@/features/subscriptions/api/subscriptionsApi";
+import type { RootState } from "@/store";
 
 export type SubscriptionsState = {
   subscriptions: Subscription[];
   state: "loading" | "idle" | "error" | "success";
   error: string | null;
+  currentPage: number;
+  itemsPerPage: number;
 };
 
 const initialState: SubscriptionsState = {
   subscriptions: [],
   state: "idle",
   error: null,
+  currentPage: 1,
+  itemsPerPage: 5,
 };
 
 export const fetchSubscriptions = createAsyncThunk(
@@ -38,6 +43,19 @@ export const subscriptionsSlice = createSlice({
         subscription.status = "cancelled";
       }
     },
+    prevPage: (state) => {
+      if (state.currentPage > 1) {
+        state.currentPage -= 1;
+      }
+    },
+    nextPage: (state) => {
+      const maxPage = Math.ceil(
+        state.subscriptions.length / state.itemsPerPage
+      );
+      if (state.currentPage < maxPage) {
+        state.currentPage += 1;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -57,4 +75,11 @@ export const subscriptionsSlice = createSlice({
 
 export default subscriptionsSlice.reducer;
 
-export const { cancelSubscription } = subscriptionsSlice.actions;
+export const { cancelSubscription, prevPage, nextPage } =
+  subscriptionsSlice.actions;
+
+// Selectors
+export const selectTotalPages = (state: RootState) =>
+  Math.ceil(
+    state.subscriptions.subscriptions.length / state.subscriptions.itemsPerPage
+  ) || 1;
