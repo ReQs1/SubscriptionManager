@@ -1,7 +1,10 @@
-import { useAppSelector } from "@/common/hooks/redux-hooks";
+import { useEffect } from "react";
+import styled from "styled-components";
+
+import { useAppDispatch, useAppSelector } from "@/common/hooks/redux-hooks";
 import SubscriptionCard from "@/features/subscriptions/components/subscription-card";
 import SubscriptionsListHeader from "@/features/subscriptions/components/subscriptions-list-header";
-import styled from "styled-components";
+import { fetchSubscriptions } from "@/features/subscriptions/subscriptionsSlice";
 
 const Container = styled.div`
   width: 100%;
@@ -29,6 +32,13 @@ function SubscriptionsList() {
   const { error, state, subscriptions } = useAppSelector(
     (state) => state.subscriptions
   );
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (state === "idle") {
+      dispatch(fetchSubscriptions());
+    }
+  }, [state, dispatch]);
 
   return (
     <Container>
