@@ -1,7 +1,9 @@
 import { StyledButton } from "@/common/components/button";
+import { useAppDispatch } from "@/common/hooks/redux-hooks";
 import { formatDate } from "@/common/utils/utils";
 import type { Subscription } from "@/data/mock-data";
 import styled, { css } from "styled-components";
+import { cancelSubscription } from "@/features/subscriptions/subscriptionsSlice";
 
 const Card = styled.li`
   border: 1px solid #ccc;
@@ -60,6 +62,8 @@ type Props = {
 };
 
 function SubscriptionCard({ subscription }: Props) {
+  const dispatch = useAppDispatch();
+
   return (
     <Card>
       <InformationContainer>
@@ -70,7 +74,18 @@ function SubscriptionCard({ subscription }: Props) {
         </Price>
         <p>Renews on: {formatDate(new Date(subscription.nextPaymentDate))}</p>
       </InformationContainer>
-      <StyledButton $variant="ghost">Cancel</StyledButton>
+      <StyledButton
+        onClick={() => dispatch(cancelSubscription(subscription.id))}
+        disabled={subscription.status === "cancelled"}
+        $variant="ghost"
+        aria-label={
+          subscription.status === "cancelled"
+            ? `Subscription ${subscription.offerTitle} is cancelled`
+            : `Cancel ${subscription.offerTitle} subscription`
+        }
+      >
+        {subscription.status === "cancelled" ? "Cancelled" : "Cancel"}
+      </StyledButton>
     </Card>
   );
 }

@@ -1,5 +1,9 @@
 import type { Subscription } from "@/data/mock-data";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 import { fetchMockSubscriptions } from "@/features/subscriptions/api/subscriptionsApi";
 
 export type SubscriptionsState = {
@@ -25,7 +29,16 @@ export const fetchSubscriptions = createAsyncThunk(
 export const subscriptionsSlice = createSlice({
   name: "subscriptions",
   initialState,
-  reducers: {},
+  reducers: {
+    cancelSubscription: (state, action: PayloadAction<string>) => {
+      const subscription = state.subscriptions.find(
+        (sub) => sub.id === action.payload
+      );
+      if (subscription) {
+        subscription.status = "cancelled";
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchSubscriptions.pending, (state) => {
@@ -43,3 +56,5 @@ export const subscriptionsSlice = createSlice({
 });
 
 export default subscriptionsSlice.reducer;
+
+export const { cancelSubscription } = subscriptionsSlice.actions;
