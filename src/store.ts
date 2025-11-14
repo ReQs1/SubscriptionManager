@@ -1,7 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
+import subscriptionsReducer from "@/features/subscriptions/subscriptionsSlice";
 
 export const store = configureStore({
-  reducer: {},
+  reducer: {
+    subscriptions: subscriptionsReducer,
+  },
 });
 
 // Infer the `RootState` and `AppDispatch` types from the store itself

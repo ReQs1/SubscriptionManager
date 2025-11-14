@@ -1,10 +1,7 @@
-import { mockSubscriptions, type Subscription } from "@/data/mock-data";
+import { useAppSelector } from "@/common/hooks/redux-hooks";
 import SubscriptionCard from "@/features/subscriptions/components/subscription-card";
 import SubscriptionsListHeader from "@/features/subscriptions/components/subscriptions-list-header";
-import { useState } from "react";
 import styled from "styled-components";
-
-const state: "loading" | "idle" | "error" | "success" = "success";
 
 const Container = styled.div`
   width: 100%;
@@ -21,18 +18,29 @@ const List = styled.ul`
   gap: 1rem;
 `;
 
+const EmptyMessage = styled.p`
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+  font-size: 1rem;
+`;
+
 function SubscriptionsList() {
-  const [subscriptions] = useState<Subscription[]>(mockSubscriptions);
+  const { error, state, subscriptions } = useAppSelector(
+    (state) => state.subscriptions
+  );
 
   return (
     <Container>
       <SubscriptionsListHeader />
       <List>
         {state === "loading" && <p>Loading subscriptions...</p>}
-        {state === "error" && (
-          <p>Error loading subscriptions. Please try again.</p>
+        {state === "error" && <p>{error}</p>}
+        {state === "success" && subscriptions.length === 0 && (
+          <EmptyMessage>No subscriptions yet</EmptyMessage>
         )}
         {state === "success" &&
+          subscriptions.length > 0 &&
           subscriptions.map((sub) => (
             <SubscriptionCard key={sub.id} subscription={sub} />
           ))}
