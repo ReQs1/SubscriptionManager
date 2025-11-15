@@ -8,3 +8,15 @@ export async function fetchMockSubscriptions(): Promise<Subscription[]> {
     }, 1000);
   });
 }
+
+export async function cancelSubscription() {
+  return new Promise<void>((resolve, reject) => {
+    setTimeout(() => {
+      if (Math.random() < 0.9) {
+        resolve();
+      } else {
+        reject("Failed to cancel subscription. Please try again later.");
+      }
+    }, 1000);
+  });
+}

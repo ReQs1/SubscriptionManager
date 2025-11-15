@@ -1,9 +1,14 @@
 import { StyledButton } from "@/common/components/button";
-import { useAppDispatch } from "@/common/hooks/redux-hooks";
+import Modal from "@/common/components/modal";
+import { useAppDispatch, useAppSelector } from "@/common/hooks/redux-hooks";
 import { formatDate } from "@/common/utils/utils";
 import type { Subscription } from "@/data/mock-data";
-import { cancelSubscription } from "@/features/subscriptions/subscriptionsSlice";
+import {
+  cancelSubscriptionThunk,
+  clearCancelError,
+} from "@/features/subscriptions/subscriptionsSlice";
 import { formatPrice } from "@/features/subscriptions/utils/utils";
+import { useState, useEffect } from "react";
 import styled, { css } from "styled-components";
 
 const Card = styled.li`
@@ -63,32 +68,78 @@ type Props = {
 };
 
 function SubscriptionCard({ subscription }: Props) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { cancellingIds, cancelErrors } = useAppSelector(
+    (state) => state.subscriptions
+  );
   const dispatch = useAppDispatch();
 
+  const isCancelling = cancellingIds.includes(subscription.id);
+  const isCancelled = subscription.status === "cancelled";
+  const errorMessage = cancelErrors.find(
+    (error) => error.subscriptionId === subscription.id
+  )?.message;
+
+  const handleCancelClick = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmCancel = () => {
+    dispatch(cancelSubscriptionThunk(subscription.id));
+    setIsModalOpen(false);
+  };
+
+  const handleCancelModal = () => {
+    setIsModalOpen(false);
+  };
+
+  useEffect(() => {
+    if (errorMessage) {
+      alert(errorMessage);
+      dispatch(clearCancelError(subscription.id));
+    }
+  }, [errorMessage, dispatch, subscription.id]);
+
   return (
-    <Card>
-      <InformationContainer>
-        <Title>{subscription.offerTitle}</Title>
-        <Status status={subscription.status}>{subscription.status}</Status>
-        <Price>
-          <span>{formatPrice(subscription.price, subscription.currency)}</span>{" "}
-          / month
-        </Price>
-        <p>Renews on: {formatDate(new Date(subscription.nextPaymentDate))}</p>
-      </InformationContainer>
-      <StyledButton
-        onClick={() => dispatch(cancelSubscription(subscription.id))}
-        disabled={subscription.status === "cancelled"}
-        $variant="ghost"
-        aria-label={
-          subscription.status === "cancelled"
-            ? `Subscription ${subscription.offerTitle} is cancelled`
-            : `Cancel ${subscription.offerTitle} subscription`
-        }
-      >
-        {subscription.status === "cancelled" ? "Cancelled" : "Cancel"}
-      </StyledButton>
-    </Card>
+    <>
+      <Card>
+        <InformationContainer>
+          <Title>{subscription.offerTitle}</Title>
+          <Status status={subscription.status}>{subscription.status}</Status>
+          <Price>
+            <span>
+              {formatPrice(subscription.price, subscription.currency)}
+            </span>{" "}
+            / month
+          </Price>
+          <p>Renews on: {formatDate(new Date(subscription.nextPaymentDate))}</p>
+        </InformationContainer>
+        <StyledButton
+          onClick={handleCancelClick}
+          disabled={isCancelled || isCancelling}
+          $variant="ghost"
+          aria-label={
+            isCancelled
+              ? `Subscription ${subscription.offerTitle} is cancelled`
+              : `Cancel ${subscription.offerTitle} subscription`
+          }
+        >
+          {isCancelling
+            ? "Cancelling..."
+            : isCancelled
+            ? "Cancelled"
+            : "Cancel"}
+        </StyledButton>
+      </Card>
+
+      <Modal
+        isOpen={isModalOpen}
+        title="Cancel Subscription"
+        message={`Are you sure you want to cancel "${subscription.offerTitle}"? This action cannot be undone.`}
+        onConfirm={handleConfirmCancel}
+        onCancel={handleCancelModal}
+      />
+    </>
   );
 }
 

@@ -1,11 +1,15 @@
 import type { Subscription } from "@/data/mock-data";
 import {
-  createAsyncThunk,
-  createSlice,
-  type PayloadAction,
-} from "@reduxjs/toolkit";
-import { fetchMockSubscriptions } from "@/features/subscriptions/api/subscriptionsApi";
+  cancelSubscription,
+  fetchMockSubscriptions,
+} from "@/features/subscriptions/api/subscriptionsApi";
 import type { RootState } from "@/store";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+
+type CancelError = {
+  subscriptionId: string;
+  message: string;
+};
 
 export type SubscriptionsState = {
   subscriptions: Subscription[];
@@ -13,6 +17,8 @@ export type SubscriptionsState = {
   error: string | null;
   currentPage: number;
   itemsPerPage: number;
+  cancellingIds: string[];
+  cancelErrors: CancelError[];
 };
 
 const initialState: SubscriptionsState = {
@@ -21,6 +27,8 @@ const initialState: SubscriptionsState = {
   error: null,
   currentPage: 1,
   itemsPerPage: 5,
+  cancellingIds: [],
+  cancelErrors: [],
 };
 
 export const fetchSubscriptions = createAsyncThunk(
@@ -31,18 +39,18 @@ export const fetchSubscriptions = createAsyncThunk(
   }
 );
 
+export const cancelSubscriptionThunk = createAsyncThunk(
+  "subscriptions/cancelSubscription",
+  async (subId: string) => {
+    await cancelSubscription();
+    return subId;
+  }
+);
+
 export const subscriptionsSlice = createSlice({
   name: "subscriptions",
   initialState,
   reducers: {
-    cancelSubscription: (state, action: PayloadAction<string>) => {
-      const subscription = state.subscriptions.find(
-        (sub) => sub.id === action.payload
-      );
-      if (subscription) {
-        subscription.status = "cancelled";
-      }
-    },
     prevPage: (state) => {
       if (state.currentPage > 1) {
         state.currentPage -= 1;
@@ -56,9 +64,15 @@ export const subscriptionsSlice = createSlice({
         state.currentPage += 1;
       }
     },
+    clearCancelError: (state, action) => {
+      state.cancelErrors = state.cancelErrors.filter(
+        (error) => error.subscriptionId !== action.payload
+      );
+    },
   },
   extraReducers: (builder) => {
     builder
+      // Fetch Subscriptions
       .addCase(fetchSubscriptions.pending, (state) => {
         state.state = "loading";
       })
@@ -69,13 +83,37 @@ export const subscriptionsSlice = createSlice({
       .addCase(fetchSubscriptions.rejected, (state, action) => {
         state.state = "error";
         state.error = action.error.message || "Failed to fetch subscriptions";
+      })
+      // Cancel Subscription
+      .addCase(cancelSubscriptionThunk.pending, (state, action) => {
+        state.cancellingIds.push(action.meta.arg);
+      })
+      .addCase(cancelSubscriptionThunk.fulfilled, (state, action) => {
+        const subscription = state.subscriptions.find(
+          (sub) => sub.id === action.payload
+        );
+        if (subscription) {
+          subscription.status = "cancelled";
+        }
+        state.cancellingIds = state.cancellingIds.filter(
+          (id) => id !== action.payload
+        );
+      })
+      .addCase(cancelSubscriptionThunk.rejected, (state, action) => {
+        state.cancellingIds = state.cancellingIds.filter(
+          (id) => id !== action.meta.arg
+        );
+        state.cancelErrors.push({
+          subscriptionId: action.meta.arg,
+          message: action.error.message || "Failed to cancel subscription",
+        });
       });
   },
 });
 
 export default subscriptionsSlice.reducer;
 
-export const { cancelSubscription, prevPage, nextPage } =
+export const { prevPage, nextPage, clearCancelError } =
   subscriptionsSlice.actions;
 
 // Selectors
